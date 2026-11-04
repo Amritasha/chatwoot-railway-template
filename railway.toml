@@ -2,9 +2,14 @@
 builder = "dockerfile"
 
 [deploy]
-healthcheckTimeout = 300
+# Chatwoot runs `rails db:chatwoot_prepare` before it binds a port. On a cold
+# Postgres that regularly runs past the old 300s window, and the deploy was
+# being killed mid-migration — which leaves a half-migrated database that
+# fails again on the retry.
+healthcheckPath = "/api"
+healthcheckTimeout = 900
 restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3
+restartPolicyMaxRetries = 10
 
 [variables]
 RAILS_ENV = "production"
