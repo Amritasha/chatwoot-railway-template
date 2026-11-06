@@ -63,18 +63,42 @@ SMTP_ENABLE_STARTTLS_AUTO=true
 
 Works with SendGrid, Resend, Postmark, or any SMTP provider.
 
+**Outbound SMTP is blocked on Railway's Free, Trial and Hobby plans** and only
+opens up on Pro. On a lower plan, invites and notifications will fail no matter
+how the variables are set — use a provider's HTTP API instead of SMTP, or move
+to Pro.
+
 ---
 
 ## File storage (optional)
 
-Files are stored locally by default. For production use, switch to S3:
+Attachments are written to `/app/storage` by default. This template mounts a
+volume there, so they survive redeploys — without one, every file your team
+or your customers upload is thrown away the next time the service restarts.
+
+For a bucket instead, the variable names depend on which bucket:
+
+**Amazon S3 proper:**
 
 ```
-STORAGE_DRIVER=s3
+ACTIVE_STORAGE_SERVICE=amazon
 AWS_ACCESS_KEY_ID=...
 AWS_SECRET_ACCESS_KEY=...
 AWS_REGION=us-east-1
-AWS_BUCKET=your-bucket
+S3_BUCKET_NAME=your-bucket
+```
+
+**A Railway bucket, or any other S3-compatible store** (Backblaze, R2, MinIO,
+DigitalOcean Spaces). The `amazon` service has no endpoint setting, so it
+cannot reach a non-AWS bucket — use `s3_compatible`:
+
+```
+ACTIVE_STORAGE_SERVICE=s3_compatible
+STORAGE_ACCESS_KEY_ID=${{Bucket.ACCESS_KEY_ID}}
+STORAGE_SECRET_ACCESS_KEY=${{Bucket.SECRET_ACCESS_KEY}}
+STORAGE_REGION=${{Bucket.REGION}}
+STORAGE_BUCKET_NAME=${{Bucket.BUCKET}}
+STORAGE_ENDPOINT=${{Bucket.ENDPOINT}}
 ```
 
 ---

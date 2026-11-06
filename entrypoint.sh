@@ -18,8 +18,12 @@ echo "[chatwoot] Migrations complete."
 run_sidekiq() {
   while true; do
     echo "[chatwoot] Starting Sidekiq worker..."
-    bundle exec sidekiq -C config/sidekiq.yml
-    code=$?
+    # `set -e` is on, and an untested failing command aborts the whole
+    # subshell -- so a Sidekiq crash killed this supervisor instead of being
+    # caught by it, which is the opposite of the intent. Testing the command
+    # with || exempts it, and $code survives to be logged.
+    code=0
+    bundle exec sidekiq -C config/sidekiq.yml || code=$?
     echo "[chatwoot] Sidekiq exited with code $code — restarting in 5s."
     sleep 5
   done
